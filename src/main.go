@@ -12,13 +12,15 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 )
 
 // 获取json格式的ip信息
 func getCurrenJsonIp() string {
-	res, err := http.Get("https://ipv6.jsonip.com")
+	httpClient := http.Client{Timeout: time.Second * 5}
+	res, err := httpClient.Get("https://ipv6.jsonip.com")
 	if err != nil {
-		res, err = http.Get("https://jsonip.com")
+		res, err = httpClient.Get("https://jsonip.com")
 		if err != nil {
 			return ""
 		}
