@@ -91,8 +91,9 @@ func _main(args []*string) (_err error) {
 		return _err
 	}
 
+	subDomain := configGojsonq.Reset().Find("SubDomain").(string)
 	describeSubDomainRecordsRequest := &alidns20150109.DescribeSubDomainRecordsRequest{
-		SubDomain: tea.String("ipv6-cname.jiuchet.shop"),
+		SubDomain: tea.String(subDomain),
 	}
 
 	// 获取子域名解析记录列表
