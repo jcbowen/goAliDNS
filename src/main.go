@@ -25,9 +25,9 @@ func getCurrenJsonIp() string {
 			return ""
 		}
 	}
-	robots, err := ioutil.ReadAll(res.Body)
+	robots, _err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	if err != nil {
+	if _err != nil {
 		return ""
 	}
 	return string(robots)
@@ -91,7 +91,7 @@ func _main(args []*string) (_err error) {
 		return _err
 	}
 
-	subDomain := configGojsonq.Reset().Find("SubDomain").(string)
+	subDomain := configGojsonq.Reset().Find("subDomain").(string)
 	describeSubDomainRecordsRequest := &alidns20150109.DescribeSubDomainRecordsRequest{
 		SubDomain: tea.String(subDomain),
 	}
