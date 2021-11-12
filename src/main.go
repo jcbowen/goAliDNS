@@ -76,7 +76,7 @@ func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *alidns
 }
 
 func _main(args []*string) (_err error) {
-	file, fErr := ioutil.ReadFile("config/config.json")
+	file, fErr := ioutil.ReadFile("./config/config.json")
 	if fErr != nil {
 		return fErr
 	}
