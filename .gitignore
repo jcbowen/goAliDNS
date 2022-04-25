@@ -2,7 +2,7 @@
 .idea
 .DS_Store
 src/config/config.json
-src/go.mod
+#src/go.mod
 src/go.sum
 pkg/mod/*
 pkg/sumdb/*
