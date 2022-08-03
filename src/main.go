@@ -18,9 +18,11 @@ import (
 // 获取json格式的ip信息
 func getCurrenJsonIp() string {
 	httpClient := http.Client{Timeout: time.Second * 5}
-	res, err := httpClient.Get("https://ipv6.jsonip.com")
+	//res, err := httpClient.Get("https://ipv6.jsonip.com")
+	res, err := httpClient.Get("http://ipv6.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
 	if err != nil {
-		res, err = httpClient.Get("https://jsonip.com")
+		//res, err = httpClient.Get("https://jsonip.com")
+		res, err = httpClient.Get("http://ipv4.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
 		if err != nil {
 			return ""
 		}
@@ -33,7 +35,15 @@ func getCurrenJsonIp() string {
 	if _err != nil {
 		return ""
 	}
-	return string(robots)
+	strRobots := string(robots)
+
+	//------ 新接口返回的json数据是包含在_jqjsp(和)之中的 ------/
+	// 去除开头的字符_jqjsp(
+	strRobots = strRobots[7:]
+	// 去除结尾的字符)
+	strRobots = strRobots[:len(strRobots)-2]
+
+	return strRobots
 }
 
 // ParseIP
@@ -130,11 +140,11 @@ func _main(args []*string) (_err error) {
 	// 获取当前IP
 	var ipVersion int
 	jsonString := getCurrenJsonIp()
+	fmt.Println("获取json格式ip信息成功：", jsonString)
 	currenIp := gojsonq.New().FromString(jsonString).Find("ip").(string)
 	_, ipVersion = ParseIP(currenIp)
 
 	fmt.Println("当前主机的IP地址成功：", currenIp)
-	//fmt.Println("当前解析的IP地址为：", record.Value)
 
 	// 如果IP发生了变化
 	if currenIp != "" && currenIp != record.Value {
