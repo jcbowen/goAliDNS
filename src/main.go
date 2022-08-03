@@ -26,7 +26,10 @@ func getCurrenJsonIp() string {
 		}
 	}
 	robots, _err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	err2 := res.Body.Close()
+	if err2 != nil {
+		return ""
+	}
 	if _err != nil {
 		return ""
 	}
@@ -82,16 +85,21 @@ func _main(args []*string) (_err error) {
 	}
 
 	fileData := string(file)
+	fmt.Println("获取配置信息成功")
 	configGojsonq := gojsonq.New().FromString(fileData)
 	accessKeyId := configGojsonq.Find("aliOpenApi.accessKeyId").(string)
 	accessKeySecret := configGojsonq.Reset().Find("aliOpenApi.accessKeySecret").(string)
+	subDomain := configGojsonq.Reset().Find("subDomain").(string)
+	settingType := configGojsonq.Reset().Find("setting.type").(string)
+
+	fmt.Println("二级域名:", subDomain)
+	fmt.Println("解析类型:", settingType)
 
 	client, _err := CreateClient(tea.String(accessKeyId), tea.String(accessKeySecret))
 	if _err != nil {
 		return _err
 	}
 
-	subDomain := configGojsonq.Reset().Find("subDomain").(string)
 	describeSubDomainRecordsRequest := &alidns20150109.DescribeSubDomainRecordsRequest{
 		SubDomain: tea.String(subDomain),
 	}
@@ -101,13 +109,6 @@ func _main(args []*string) (_err error) {
 	if _err != nil {
 		return _err
 	}
-
-	// 获取当前IP
-	var ipVersion int
-	jsonString := getCurrenJsonIp()
-	currenIp := gojsonq.New().FromString(jsonString).Find("ip").(string)
-	_, ipVersion = ParseIP(currenIp)
-
 	recordString := result.Body.DomainRecords.Record[0].String()
 	type con struct {
 		Status     string
@@ -123,12 +124,17 @@ func _main(args []*string) (_err error) {
 	}
 	record := &con{}
 	_err = json.Unmarshal([]byte(recordString), record)
-
-	fmt.Println("当前主机的IP地址为：", currenIp)
-	fmt.Println("当前解析的IP地址为：", record.Value)
-
-	fmt.Println("查询子域名解析记录如下：")
+	fmt.Println("查询子域名解析记录成功：")
 	fmt.Println(recordString)
+
+	// 获取当前IP
+	var ipVersion int
+	jsonString := getCurrenJsonIp()
+	currenIp := gojsonq.New().FromString(jsonString).Find("ip").(string)
+	_, ipVersion = ParseIP(currenIp)
+
+	fmt.Println("当前主机的IP地址成功：", currenIp)
+	//fmt.Println("当前解析的IP地址为：", record.Value)
 
 	// 如果IP发生了变化
 	if currenIp != "" && currenIp != record.Value {
