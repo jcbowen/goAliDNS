@@ -3,12 +3,13 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"flag"
 	alidns20150109 "github.com/alibabacloud-go/alidns-20150109/v2/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/thedevsaddam/gojsonq"
-	"io/ioutil"
+	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -27,7 +28,7 @@ func getCurrenJsonIp() string {
 			return ""
 		}
 	}
-	robots, _err := ioutil.ReadAll(res.Body)
+	robots, _err := io.ReadAll(res.Body)
 	err2 := res.Body.Close()
 	if err2 != nil {
 		return ""
@@ -88,22 +89,22 @@ func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *alidns
 	return _result, _err
 }
 
-func _main(args []*string) (_err error) {
-	file, fErr := ioutil.ReadFile("./config/config.json")
+func _main() (_err error) {
+	file, fErr := os.ReadFile("./data/config.json")
 	if fErr != nil {
 		return fErr
 	}
 
 	fileData := string(file)
-	fmt.Println("获取配置信息成功")
+	log.Println("获取配置信息成功")
 	configGojsonq := gojsonq.New().FromString(fileData)
 	accessKeyId := configGojsonq.Find("aliOpenApi.accessKeyId").(string)
 	accessKeySecret := configGojsonq.Reset().Find("aliOpenApi.accessKeySecret").(string)
 	subDomain := configGojsonq.Reset().Find("subDomain").(string)
 	settingType := configGojsonq.Reset().Find("setting.type").(string)
 
-	fmt.Println("二级域名:", subDomain)
-	fmt.Println("解析类型:", settingType)
+	log.Println("二级域名:", subDomain)
+	log.Println("解析类型:", settingType)
 
 	client, _err := CreateClient(tea.String(accessKeyId), tea.String(accessKeySecret))
 	if _err != nil {
@@ -134,20 +135,21 @@ func _main(args []*string) (_err error) {
 	}
 	record := &con{}
 	_err = json.Unmarshal([]byte(recordString), record)
-	fmt.Println("查询子域名解析记录成功：")
-	fmt.Println(recordString)
+	log.Println("查询子域名解析记录成功：\n", recordString)
 
 	// 获取当前IP
 	var ipVersion int
 	jsonString := getCurrenJsonIp()
-	fmt.Println("获取json格式ip信息成功：", jsonString)
+	log.Println("获取json格式ip信息成功：", jsonString)
 	currenIp := gojsonq.New().FromString(jsonString).Find("ip").(string)
 	_, ipVersion = ParseIP(currenIp)
 
-	fmt.Println("当前主机的IP地址成功：", currenIp)
+	log.Println("获取当前主机的IP地址成功：", currenIp)
 
 	// 如果IP发生了变化
 	if currenIp != "" && currenIp != record.Value {
+		log.Println("IP发生了变化，开始更新解析记录")
+
 		var Type = "AAAA"
 		if ipVersion == 4 {
 			Type = "AAA"
@@ -163,18 +165,38 @@ func _main(args []*string) (_err error) {
 		if __err != nil {
 			return __err
 		}
-
-		fmt.Println("更新解析成功，返回信息如下：")
-		fmt.Println(updateResult.Body.String())
+		log.Println("更新解析记录成功：\n", updateResult.Body.String(), "\n")
 	} else {
-		fmt.Println("IP未发生变化，不执行更新")
+		log.Println("IP地址未发生变化，无需更新解析", "\n")
 	}
 
 	return _err
 }
 
+func init() {
+	log.SetPrefix("[https://github.com/jcbowen/goAliDNS] ")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	isLog := flag.Bool("log", false, "是否打印日志")
+	flag.Parse()
+	if *isLog {
+		// 定义一个以时间为文件名的日志文件
+		fileName := time.Now().Format("2006-01-02 15:02:01") + ".log"
+
+		logFile, err := os.OpenFile("./data/"+fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			log.Fatalln("打开日志文件异常")
+		}
+		log.SetOutput(logFile)
+	}
+
+}
+
 func main() {
-	err := _main(tea.StringSlice(os.Args[1:]))
+	log.Println("开始获取配置信息")
+
+	// 执行主程序
+	err := _main()
 	if err != nil {
 		panic(err)
 	}
