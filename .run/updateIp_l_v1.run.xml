@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="updateIp_l/v1" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <configuration default="false" name="updateIp_l/v1" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="false">
     <module name="goAliDNS" />
-    <working_directory value="$PROJECT_DIR$" />
+    <working_directory value="$PROJECT_DIR$/src" />
     <envs>
       <env name="GOOS" value="linux" />
     </envs>

@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="updateIp/v1" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="goAliDNS" />
-    <working_directory value="$PROJECT_DIR$" />
+    <working_directory value="$PROJECT_DIR$/src" />
     <kind value="DIRECTORY" />
     <directory value="$PROJECT_DIR$/src" />
     <filePath value="$PROJECT_DIR$/../goAliDNS|$PROJECT_DIR$/src/main.go" />
