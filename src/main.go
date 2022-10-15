@@ -7,6 +7,7 @@ import (
 	alidns20150109 "github.com/alibabacloud-go/alidns-20150109/v2/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/jcbowen/jcbaseGo/helper"
 	"github.com/thedevsaddam/gojsonq"
 	"io"
 	"log"
@@ -165,9 +166,9 @@ func _main() (_err error) {
 		if __err != nil {
 			return __err
 		}
-		log.Println("更新解析记录成功：\n", updateResult.Body.String(), "\n")
+		log.Printf("更新解析记录成功：\n%s\n\n\n", updateResult.Body.String())
 	} else {
-		log.Println("IP地址未发生变化，无需更新解析", "\n")
+		log.Printf("IP没有发生变化，不需要更新解析记录\n\n\n")
 	}
 
 	return _err
@@ -181,9 +182,15 @@ func init() {
 	flag.Parse()
 	if *isLog {
 		// 定义一个以时间为文件名的日志文件
-		fileName := time.Now().Format("2006-01-02 15:02:01") + ".log"
-
-		logFile, err := os.OpenFile("./data/"+fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		fileName := "./data/log/" + time.Now().Format("2006-01/02") + ".log"
+		exists, err := helper.DirExists(fileName, true, 0755)
+		if err != nil {
+			panic(err)
+		}
+		if !exists {
+			panic("创建日志目录失败")
+		}
+		logFile, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			log.Fatalln("打开日志文件异常")
 		}
