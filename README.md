@@ -1,29 +1,52 @@
 # goAliDNS
-go 语言自动获取ip地址并更新到阿里动态DNS里，实现动态解析
 
-###执行文件同目录下需要创建一个data目录，并在其中放一个config.json
+go 语言自动获取ip地址并更新到阿里动态DDNS里，实现动态解析
+
+## 注意
+
+* 初次运行的时候，如果没有配置文件，会自动生成配置文件，然后退出程序，需要手动修改配置文件
+
+***
+## 使用方法
+Linux/Mac使用方法(Win差不多，只是需要的文件是.exe那个)：
+
+```shell
+./aliDDNS
+```
+
+如果您想要后台运行，可以使用nohup命令
+
+```shell
+nohup ./aliDDNS &
+```
+
+如果您想要将日志输出到文件，可以传递参数--log
+
+```shell
+./aliDDNS --log
+```
 
 ***
 目录说明
+
 ```
 ├─data // 配置/日志文件目录
 │  │
-│  └─config.json // 配置信息
+│  └─conf.json // 配置信息
 │
 └─updateIp_l_linux //go编译出的可执行文件
 ```
 
 ***
-config.json结构如下
+conf.json结构如下，使用时请去掉注释
+
 ```
 {
-  "aliOpenApi": {
-    "accessKeyId": "阿里云ACCESSKEYID",
-    "accessKeySecret": "阿里云ACCESSKEYSECRET"
-  },
-  "subDomain": "www.domain.com", // 需要修改的二级域名
-  "setting": {
-    "type": "6" // 解析类型，请参考阿里云动态解析文档
-  }
+ "AliOpenApiStruct": {
+  "accessKeyId": "阿里云AccessKey ID",
+  "accessKeySecret": "阿里云AccessKey Secret"
+ },
+ "subDomain": "www.example.com", // 需要解析的子域名
+ "type": "A" // A记录 或者 AAA记录
 }
 ```
