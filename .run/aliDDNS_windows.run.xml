@@ -1,11 +1,14 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="updateIp/v1" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <configuration default="false" name="aliDDNS_windows" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="goAliDNS" />
     <working_directory value="$PROJECT_DIR$/src" />
+    <envs>
+      <env name="GOOS" value="windows" />
+    </envs>
     <kind value="DIRECTORY" />
     <directory value="$PROJECT_DIR$/src" />
     <filePath value="$PROJECT_DIR$/../goAliDNS|$PROJECT_DIR$/src/main.go" />
-    <output_directory value="$PROJECT_DIR$/bin" />
+    <output_directory value="$PROJECT_DIR$/bin/windows" />
     <option name="run" value="false" />
     <method v="2" />
   </configuration>
