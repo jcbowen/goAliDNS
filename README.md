@@ -7,23 +7,25 @@ go 语言自动获取ip地址并更新到阿里动态DDNS里，实现动态解�
 * 初次运行的时候，如果没有配置文件，会自动生成配置文件，然后退出程序，需要手动修改配置文件
 
 ***
+
 ## 使用方法
+
 Linux/Mac使用方法(Win差不多，只是需要的文件是.exe那个)：
 
 ```shell
-./aliDDNS
+./aliDDNS_linux
 ```
 
 如果您想要后台运行，可以使用nohup命令
 
 ```shell
-nohup ./aliDDNS --log &
+nohup ./aliDDNS_linux --log &
 ```
 
 如果您想要将日志输出到文件而不是输出到控制台，可以传递参数--log
 
 ```shell
-./aliDDNS --log
+./aliDDNS_linux --log
 ```
 
 ***
