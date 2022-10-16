@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="aliDDNS_mac" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="false">
+  <configuration default="false" name="aliDDNS_mac" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="true">
     <module name="goAliDNS" />
     <working_directory value="$PROJECT_DIR$/src" />
     <kind value="DIRECTORY" />
