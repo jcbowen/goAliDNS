@@ -20,10 +20,8 @@ import (
 // 获取json格式的ip信息
 func getCurrenJsonIp() string {
 	httpClient := http.Client{Timeout: time.Second * 5}
-	//res, err := httpClient.Get("https://ipv6.jsonip.com")
 	res, err := httpClient.Get("http://ipv6.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
 	if err != nil {
-		//res, err = httpClient.Get("https://jsonip.com")
 		res, err = httpClient.Get("http://ipv4.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
 		if err != nil {
 			return ""
