@@ -98,11 +98,11 @@ func _main() (_err error) {
 
 	fileData := string(file)
 	log.Println("获取配置信息成功")
-	configGojsonq := gojsonq.New().FromString(fileData)
-	accessKeyId := configGojsonq.Find("aliOpenApi.accessKeyId").(string)
-	accessKeySecret := configGojsonq.Reset().Find("aliOpenApi.accessKeySecret").(string)
-	subDomain := configGojsonq.Reset().Find("subDomain").(string)
-	settingType := configGojsonq.Reset().Find("setting.type").(string)
+	configJson := gojsonq.New().FromString(fileData)
+	accessKeyId := configJson.Find("aliOpenApi.accessKeyId").(string)
+	accessKeySecret := configJson.Reset().Find("aliOpenApi.accessKeySecret").(string)
+	subDomain := configJson.Reset().Find("subDomain").(string)
+	settingType := configJson.Reset().Find("setting.type").(string)
 
 	log.Println("二级域名:", subDomain)
 	log.Println("解析类型:", settingType)
