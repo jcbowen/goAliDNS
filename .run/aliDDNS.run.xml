@@ -8,7 +8,7 @@
     <kind value="DIRECTORY" />
     <directory value="$PROJECT_DIR$/src" />
     <filePath value="$PROJECT_DIR$/../goAliDNS|$PROJECT_DIR$/src/main.go" />
-    <output_directory value="$PROJECT_DIR$/bin/linux" />
+    <output_directory value="$PROJECT_DIR$/bin" />
     <option name="run" value="false" />
     <method v="2" />
   </configuration>
