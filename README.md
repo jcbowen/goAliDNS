@@ -17,10 +17,10 @@ Linux/Mac使用方法(Win差不多，只是需要的文件是.exe那个)：
 如果您想要后台运行，可以使用nohup命令
 
 ```shell
-nohup ./aliDDNS &
+nohup ./aliDDNS --log &
 ```
 
-如果您想要将日志输出到文件，可以传递参数--log
+如果您想要将日志输出到文件而不是输出到控制台，可以传递参数--log
 
 ```shell
 ./aliDDNS --log
