@@ -12,7 +12,6 @@ require (
 	github.com/alibabacloud-go/tea-utils v1.4.5 // indirect
 	github.com/aliyun/credentials-go v1.2.4 // indirect
 	github.com/clbanning/mxj/v2 v2.5.6 // indirect
-	//github.com/jcbowen/jcbaseGo v0.0.0-00010101000000-000000000000
 	github.com/jcbowen/jcbaseGo v0.2.1
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
