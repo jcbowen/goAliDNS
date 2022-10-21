@@ -77,21 +77,22 @@ func _main() (_err error) {
 	if err != nil {
 		panic(err)
 	}
-	if helper.FileExists(configFileAbs) {
-		err = helper.ReadJsonFile(configFileAbs, &Config)
-		if err != nil {
-			panic(err)
-		}
-		log.Println("配置文件读取成功")
-	} else {
-		// 如果配置文件不存在，则创建配置文件
+
+	// json配置文件不存在，根据默认配置生成json配置文件
+	if !helper.FileExists(configFileAbs) {
 		file, _ := json.MarshalIndent(Config, "", " ")
-		err := helper.CreateFileIfNotExist(configFileAbs, file, 0755, true)
+		err = helper.CreateFile(configFileAbs, file, 0755, false)
 		if err != nil {
 			panic(err)
 		}
 		return errors.New("配置文件不存在，已创建默认配置文件，请修改配置文件后再次运行！\n配置文件路径：" + configFileAbs)
 	}
+
+	err = helper.ReadJsonFile(configFileAbs, &Config)
+	if err != nil {
+		panic(err)
+	}
+	log.Println("配置文件读取成功")
 
 	log.Println("正在检查配置文件...")
 
