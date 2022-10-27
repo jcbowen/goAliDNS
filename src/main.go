@@ -25,16 +25,16 @@ type AliOpenApiStruct struct {
 type ConfigStruct struct {
 	AliOpenApi AliOpenApiStruct `json:"AliOpenApiStruct"` // 阿里云openApi配置
 	SubDomain  string           `json:"subDomain"`        // 子域名
-	Type       string           `json:"type"`             // A, AAAA
+	Type       string           `json:"type"`             // ip类型 A:ipv4, AAAA:ipv6, ALL:ipv4和ipv6
 }
 
 var Config = ConfigStruct{
-	AliOpenApiStruct{
+	AliOpenApi: AliOpenApiStruct{
 		AccessKeyId:     "阿里云AccessKey ID",
 		AccessKeySecret: "阿里云AccessKey Secret",
 	},
-	"www.example.com",
-	"A",
+	SubDomain: "www.example.com",
+	Type:      "A",
 }
 
 func init() {
@@ -104,14 +104,42 @@ func _main() (_err error) {
 	log.Println("配置文件检查通过")
 	log.Println("需修改解析的二级域名:", Config.SubDomain)
 	log.Println("解析类型:", Config.Type)
+	var (
+		currentIpv4 string
+		currentIpv6 string
+	)
 	log.Println("--------------------")
-	log.Println("开始获取本机IP地址")
-	var currenIp string
-	jsonString, err := getCurrenJsonIp(&currenIp, Config.Type)
-	log.Println("获取本机json格式ip信息成功：", jsonString)
-	log.Println("获取本机的IP地址成功：", currenIp)
-	log.Println("--------------------")
-	log.Println("开始获取域名解析记录")
+	if Config.Type == "A" || Config.Type == "ALL" {
+		log.Println("正在获取本机ipv4地址...")
+		jsonString, err := getCurrenJsonIp(&currentIpv4, "A")
+		if err != nil {
+			log.Println("获取本机ipv4地址失败，错误信息：", err)
+			log.Println("--------------------")
+			goto label1
+		}
+		log.Println("获取本机json格式ipv4信息成功:", jsonString)
+		log.Println("本机ipv4地址为:", currentIpv4)
+		log.Println("--------------------")
+	}
+
+label1:
+	if Config.Type == "AAAA" || Config.Type == "ALL" {
+		log.Println("正在获取本机ipv6地址...")
+		jsonString, err := getCurrenJsonIp(&currentIpv6, "AAAA")
+		if err != nil {
+			log.Println("获取本机ipv6地址失败，错误信息：", err)
+			log.Println("--------------------")
+			goto label2
+		}
+		log.Println("获取本机json格式ipv6信息成功:", jsonString)
+		log.Println("本机ipv6地址为:", currentIpv6)
+		log.Println("--------------------")
+	}
+
+label2:
+
+	log.Println("正在获取阿里云解析记录列表...")
+
 	// 创建Client
 	client, _err := createClient(tea.String(Config.AliOpenApi.AccessKeyId), tea.String(Config.AliOpenApi.AccessKeySecret))
 	if _err != nil {
@@ -124,42 +152,92 @@ func _main() (_err error) {
 	if _err != nil {
 		return _err
 	}
-	recordString := result.Body.DomainRecords.Record[0].String()
-	type con struct {
-		Status     string
-		Type       string
-		Weight     int
-		Value      string
-		TTL        int
-		Line       string
-		RecordId   string
-		RR         string
-		DomainName string
-		Locked     bool
-	}
-	record := &con{}
-	_err = json.Unmarshal([]byte(recordString), record)
-	log.Println("获取域名解析记录成功：\n", recordString)
+
+	strBody := result.Body.String()
+	log.Println("获取阿里云解析记录列表成功\n解析记录列表:\n", strBody)
 	log.Println("--------------------")
-	log.Println("开始检查是否需要更新域名解析记录")
 
-	if currenIp != "" && currenIp != record.Value {
-		log.Println("IP发生了变化，开始更新解析记录")
+	type recordStruct struct {
+		Status     string `json:"Status"`
+		Type       string `json:"Type"`
+		Weight     int    `json:"Weight"`
+		Value      string `json:"Value"`
+		TTL        int    `json:"TTL"`
+		Line       string `json:"Line"`
+		RecordId   string `json:"RecordId"`
+		RR         string `json:"RR"`
+		DomainName string `json:"DomainName"`
+		Locked     bool   `json:"Locked"`
+	}
 
-		updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
-			RecordId: tea.String(record.RecordId),
-			RR:       tea.String(record.RR),
-			Type:     tea.String(Config.Type),
-			Value:    tea.String(currenIp),
+	type domainRecordsStruct struct {
+		Record []recordStruct `json:"Record"`
+	}
+
+	type bodyStruct struct {
+		TotalCount    int                 `json:"TotalCount"`
+		PageSize      int                 `json:"PageSize"`
+		RequestId     string              `json:"RequestId"`
+		DomainRecords domainRecordsStruct `json:"DomainRecords"`
+	}
+
+	body := bodyStruct{}
+	helper.JsonString(strBody).ToStruct(&body)
+
+	// 开始检查是否需要修改ipv4解析记录
+	if currentIpv4 != "" && (Config.Type == "A" || Config.Type == "ALL") {
+		hasIpv4Change := false
+		for _, v := range body.DomainRecords.Record {
+			if v.Type == "A" && v.Value != currentIpv4 {
+				log.Println("正在修改ipv4解析记录...")
+				// 修改ipv4解析记录
+				updateIpv4Result, _err := client.UpdateDomainRecord(&alidns20150109.UpdateDomainRecordRequest{
+					RecordId: tea.String(v.RecordId),
+					RR:       tea.String(v.RR),
+					Type:     tea.String(v.Type),
+					Value:    tea.String(currentIpv4),
+				})
+				if _err != nil {
+					return _err
+				}
+				log.Println("修改ipv4解析记录成功\n返回信息为:\n", updateIpv4Result.Body.String())
+				log.Println("--------------------")
+				hasIpv4Change = true
+				break
+			}
 		}
-
-		updateResult, __err := client.UpdateDomainRecord(updateDomainRecordRequest)
-		if __err != nil {
-			return __err
+		if !hasIpv4Change {
+			log.Println("ipv4解析记录未发生变化，无需修改")
+			log.Println("--------------------")
 		}
-		log.Printf("更新解析记录成功\n已将解析地址更新为：%s\n解析请求返回数据：\n%s\n\n\n", currenIp, updateResult.Body.String())
-	} else {
-		log.Printf("IP没有发生变化，不需要更新解析记录\n\n\n")
+	}
+
+	// 开始检查是否需要修改ipv6解析记录
+	if currentIpv6 != "" && (Config.Type == "AAAA" || Config.Type == "ALL") {
+		hasIpv6Change := false
+		for _, v := range body.DomainRecords.Record {
+			if v.Type == "AAAA" && v.Value != currentIpv6 {
+				log.Println("正在修改ipv6解析记录...")
+				// 修改ipv6解析记录
+				updateIpv6Result, _err := client.UpdateDomainRecord(&alidns20150109.UpdateDomainRecordRequest{
+					RecordId: tea.String(v.RecordId),
+					RR:       tea.String(v.RR),
+					Type:     tea.String(v.Type),
+					Value:    tea.String(currentIpv6),
+				})
+				if _err != nil {
+					return _err
+				}
+				log.Println("修改ipv6解析记录成功\n返回信息为:\n", updateIpv6Result.Body.String())
+				log.Println("--------------------")
+				hasIpv6Change = true
+				break
+			}
+		}
+		if !hasIpv6Change {
+			log.Println("ipv6解析记录未发生变化，无需修改")
+			log.Println("--------------------")
+		}
 	}
 
 	return _err
@@ -237,8 +315,8 @@ func checkConfig() error {
 	if Config.Type == "" {
 		return errors.New("请在配置文件中配置需要进行动态域名解析的类型")
 	}
-	if Config.Type != "A" && Config.Type != "AAAA" {
-		return errors.New("请在配置文件中配置正确的域名解析的类型，仅支持'A'和'AAAA'")
+	if Config.Type != "A" && Config.Type != "AAAA" && Config.Type != "ALL" {
+		return errors.New("请在配置文件中配置正确的域名解析的类型，仅支持'A'、'AAAA'和'ALL'")
 	}
 	return nil
 }
