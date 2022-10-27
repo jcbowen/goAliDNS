@@ -42,13 +42,13 @@ nohup ./aliDDNS_linux --log &
 ***
 conf.json结构如下，使用时请去掉注释
 
-```
+```json
 {
  "AliOpenApiStruct": {
   "accessKeyId": "阿里云AccessKey ID",
   "accessKeySecret": "阿里云AccessKey Secret"
  },
  "subDomain": "www.example.com", // 需要解析的子域名
- "type": "A" // A记录 或者 AAA记录
+ "type": "A" // ip类型 A:ipv4, AAAA:ipv6, ALL:ipv4和ipv6
 }
 ```
