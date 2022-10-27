@@ -86,7 +86,7 @@ func _main() (_err error) {
 	} else {
 		// 如果配置文件不存在，则创建配置文件
 		file, _ := json.MarshalIndent(Config, "", " ")
-		err := helper.CreateFileIfNotExist(configFileAbs, file, 0755, true)
+		err := helper.CreateFile(configFileAbs, file, 0755, true)
 		if err != nil {
 			panic(err)
 		}
