@@ -53,3 +53,12 @@ conf.json结构如下，使用时请去掉注释
  "type": "A" // ip类型 A:ipv4, AAAA:ipv6, ALL:ipv4和ipv6
 }
 ```
+
+## 其他
+
+如果需要自行编译，请先将`go.mod`文件中的`replace github.com/jcbowen/jcbaseGo => ../../jcbaseGo`注释掉，并执行以下命令来更新依赖文件
+
+```shell
+go mod tidy
+```
+
