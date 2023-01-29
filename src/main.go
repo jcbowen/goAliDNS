@@ -252,9 +252,9 @@ func getCurrenJsonIp(ip *string, ipType string) (string, error) {
 	var err error
 
 	if ipType == "A" {
-		res, err = httpClient.Get("http://ipv4.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
+		res, err = httpClient.Get("http://ipv4.lookup.test-ipv6.com/ip/?callback=_jqjsp&asn=1&testdomain=test-ipv6.com&testname=test_asn4")
 	} else {
-		res, err = httpClient.Get("http://ipv6.test.ipv6.fastweb.it/ip/?callback=_jqjsp")
+		res, err = httpClient.Get("http://ipv6.lookup.test-ipv6.com/ip/?callback=_jqjsp&asn=1&testdomain=test-ipv6.com&testname=test_asn6")
 	}
 	if err != nil {
 		return "", err
