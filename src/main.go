@@ -9,10 +9,8 @@ import (
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/jcbowen/jcbaseGo/helper"
-	"github.com/thedevsaddam/gojsonq"
-	"io"
 	"log"
-	"net/http"
+	"net"
 	"os"
 	"time"
 )
@@ -112,13 +110,13 @@ func _main() (_err error) {
 	log.Println("--------------------")
 	if Config.Type == "A" || Config.Type == "ALL" {
 		log.Println("正在获取本机ipv4地址...")
-		jsonString, err := getCurrenJsonIp(&currentIpv4, "A")
+		ipv4s, err := GetPublicIP("ipv4", true)
+		currentIpv4 = ipv4s[0]
 		if err != nil {
 			log.Println("获取本机ipv4地址失败，错误信息：", err)
 			log.Println("--------------------")
 			goto label1
 		}
-		log.Println("获取本机json格式ipv4信息成功:", jsonString)
 		log.Println("本机ipv4地址为:", currentIpv4)
 		log.Println("--------------------")
 	}
@@ -126,19 +124,18 @@ func _main() (_err error) {
 label1:
 	if Config.Type == "AAAA" || Config.Type == "ALL" {
 		log.Println("正在获取本机ipv6地址...")
-		jsonString, err := getCurrenJsonIp(&currentIpv6, "AAAA")
+		ipv6s, err := GetPublicIP("ipv6", true)
+		currentIpv6 = ipv6s[0]
 		if err != nil {
 			log.Println("获取本机ipv6地址失败，错误信息：", err)
 			log.Println("--------------------")
 			goto label2
 		}
-		log.Println("获取本机json格式ipv6信息成功:", jsonString)
 		log.Println("本机ipv6地址为:", currentIpv6)
 		log.Println("--------------------")
 	}
 
 label2:
-
 	log.Println("正在获取阿里云解析记录列表...")
 
 	// 创建Client
@@ -244,40 +241,48 @@ label2:
 	return _err
 }
 
-// 获取json格式的ip信息
-func getCurrenJsonIp(ip *string, ipType string) (string, error) {
-	httpClient := http.Client{Timeout: time.Second * 5}
-
-	var res *http.Response
-	var err error
-
-	if ipType == "A" {
-		res, err = httpClient.Get("http://ipv4.lookup.test-ipv6.com/ip/?callback=_jqjsp&asn=1&testdomain=test-ipv6.com&testname=test_asn4")
-	} else {
-		res, err = httpClient.Get("http://ipv6.lookup.test-ipv6.com/ip/?callback=_jqjsp&asn=1&testdomain=test-ipv6.com&testname=test_asn6")
-	}
+// GetPublicIP 获取公网IP
+func GetPublicIP(ipType string, onlyOne bool) ([]string, error) {
+	var ips []string
+	ifaces, err := net.Interfaces()
 	if err != nil {
-		return "", err
+		return ips, err
 	}
-	robots, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", err
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return ips, err
+		}
+		for _, addr := range addrs {
+			ip, _, err := net.ParseCIDR(addr.String())
+			if err != nil {
+				continue
+			}
+			if ip.IsLoopback() {
+				continue // loopback address
+			}
+			if !ip.IsGlobalUnicast() {
+				continue // not a public address
+			}
+			if ip.To4() == nil && ipType == "ipv4" {
+				continue // IPv4 address requested but this is IPv6
+			}
+			if ip.To4() != nil && ipType == "ipv6" {
+				continue // IPv6 address requested but this is IPv4
+			}
+			ips = append(ips, ip.String())
+			if onlyOne {
+				return ips, nil
+			}
+		}
 	}
-	err = res.Body.Close()
-	if err != nil {
-		return "", err
-	}
-
-	strRobots := string(robots)
-
-	//------ 新接口返回的json数据是包含在_jqjsp(和)之中的 ------/
-	// 去除开头的字符_jqjsp(
-	strRobots = strRobots[7:]
-	// 去除结尾的字符)
-	strRobots = strRobots[:len(strRobots)-2]
-
-	*ip = gojsonq.New().FromString(strRobots).Find("ip").(string)
-	return strRobots, nil
+	return ips, nil
 }
 
 // createClient
