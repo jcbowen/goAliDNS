@@ -4,8 +4,11 @@
     <working_directory value="$PROJECT_DIR$/src" />
     <envs>
       <env name="GOOS" value="windows" />
+      <env name="CGO_ENABLED" value="0" />
+      <env name="GOARCH" value="amd64" />
     </envs>
     <kind value="DIRECTORY" />
+    <package value="goAliDNS/v1" />
     <directory value="$PROJECT_DIR$/src" />
     <filePath value="$PROJECT_DIR$/../goAliDNS|$PROJECT_DIR$/src/main.go" />
     <output_directory value="$PROJECT_DIR$/bin" />
