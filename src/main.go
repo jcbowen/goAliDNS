@@ -8,7 +8,7 @@ import (
 	alidns20150109 "github.com/alibabacloud-go/alidns-20150109/v2/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/alibabacloud-go/tea/tea"
-	"github.com/jcbowen/jcbaseGo/helper"
+	"github.com/jcbowen/jcbaseGo/component/helper"
 	"log"
 	"net"
 	"os"
@@ -44,7 +44,7 @@ func init() {
 	if *isLog {
 		// 定义一个以时间为文件名的日志文件
 		fileName := "./data/log/" + time.Now().Format("2006-01/02") + ".log"
-		exists, err := helper.DirExists(fileName, true, 0755)
+		exists, err := helper.NewFile(&helper.File{Path: fileName, Perm: 0755}).DirExists(true)
 		if err != nil {
 			panic(err)
 		}
@@ -71,24 +71,24 @@ func main() {
 func _main() (_err error) {
 	log.Println("开始获取配置信息")
 	configFile := "./data/conf.json"
-	configFileAbs, err := helper.GetAbsPath(configFile)
+	configFileAbs, err := helper.NewFile(&helper.File{Path: configFile}).GetAbsPath()
 	if err != nil {
 		panic(err)
 	}
 
 	// json配置文件不存在，根据默认配置生成json配置文件
-	if !helper.FileExists(configFileAbs) {
+	if !helper.NewFile(&helper.File{Path: configFileAbs}).Exists() {
 		file, _ := json.MarshalIndent(Config, "", " ")
-		err = helper.CreateFile(configFileAbs, file, 0755, false)
+		err = helper.NewFile(&helper.File{Path: configFileAbs, Perm: 0755}).CreateFile(file, false)
 		if err != nil {
 			panic(err)
 		}
 		return errors.New("配置文件不存在，已创建默认配置文件，请修改配置文件后再次运行！\n配置文件路径：" + configFileAbs)
 	}
 
-	err = helper.ReadJsonFile(configFileAbs, &Config)
-	if err != nil {
-		panic(err)
+	jsonFileToStruct := helper.JsonFile(configFileAbs).ToStruct(&Config)
+	if jsonFileToStruct.HasError() {
+		panic(jsonFileToStruct.Errors()[0])
 	}
 	log.Println("配置文件读取成功")
 
@@ -180,7 +180,7 @@ label2:
 	}
 
 	body := bodyStruct{}
-	helper.JsonString(strBody).ToStruct(&body)
+	helper.Json(strBody).ToStruct(&body)
 
 	// 开始检查是否需要修改ipv4解析记录
 	if currentIpv4 != "" && (Config.Type == "A" || Config.Type == "ALL") {
